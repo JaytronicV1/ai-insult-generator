@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Insult Generator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1e1e2f, #3a3a5a);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 15px 30px;
+      font-size: 1.2em;
+      cursor: pointer;
+      background: #ff4d4d;
+      border: none;
+      color: white;
+      border-radius: 12px;
+      transition: background 0.3s ease, transform 0.2s ease;
+      margin: 10px;
+    }
+    button:hover {
+      background: #e63946;
+      transform: scale(1.05);
+    }
+    .insult-box {
+      margin-top: 30px;
+      font-size: 1.6em;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 25px 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      max-width: 600px;
+    }
+    .history-box {
+      margin-top: 40px;
+      max-width: 600px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 20px;
+      border-radius: 12px;
+      font-size: 1em;
+      overflow-y: auto;
+      max-height: 200px;
+    }
+    .history-entry {
+      text-align: left;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 10px;
+      border-radius: 8px;
+      margin: 5px 0;
+      font-style: italic;
+    }
+    footer {
+      position: absolute;
+      bottom: 15px;
+      font-size: 0.9em;
+      color: #ccc;
+    }
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 2em;
+      }
+      .insult-box {
+        font-size: 1.2em;
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>🔥 AI Insult Generator 🔥</h1>
+  <button onclick="getInsult()">Roast Me</button>
+  <button onclick="copyToClipboard()">Copy Roast</button>
+  <div class="insult-box" id="insultBox">Your roast will appear here...</div>
+  <div class="history-box" id="historyBox"><strong>🔥 Roast History:</strong><br></div>
+  <footer>Made with 🤖 and 🔥 — not to be taken seriously.</footer>
+
+  <script>
+    let currentInsult = "";
+    const usedInsults = new Set();
+
+    async function getInsult() {
+      const box = document.getElementById('insultBox');
+      box.textContent = "Generating roast...";
+
+      const endpoint = "https://insult-generator-backend.onrender.com/generate_insult";
+
+      try {
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+
+        if (!response.ok) throw new Error("Non-200 response");
+
+        const data = await response.json();
+        const insult = data.insult || "Couldn't come up with a roast this time.";
+
+        if (usedInsults.has(insult)) {
+          box.textContent = "Already used that roast. Try again!";
+          return;
+        }
+
+        currentInsult = insult;
+        usedInsults.add(insult);
+        box.textContent = currentInsult;
+        addToHistory(currentInsult);
+      } catch (error) {
+        console.error("Error fetching insult:", error);
+        box.textContent = "Error contacting roast server. Try again later.";
+      }
+    }
+
+    function copyToClipboard() {
+      if (!currentInsult) return;
+      navigator.clipboard.writeText(currentInsult)
+        .then(() => alert("Roast copied to clipboard!"))
+        .catch(err => console.error("Clipboard copy failed:", err));
+    }
+
+    function addToHistory(insult) {
+      const historyBox = document.getElementById('historyBox');
+      const entry = document.createElement('div');
+      entry.className = 'history-entry';
+      entry.textContent = insult;
+      historyBox.appendChild(entry);
+      historyBox.scrollTop = historyBox.scrollHeight;
+    }
+  </script>
+</body>
+</html>
